@@ -8,7 +8,7 @@ public class ExperimentDirector : MonoBehaviour {
 
 	public enum ColliderMode { Box,  Sphere, Max }
 	public enum CastMode     { Line, Sphere, Max }
-	public enum ButtonType   { ColliderMode, CastMode, Cast, Clear, Increment, IncMany, Max }
+	public enum ButtonType   { ColliderMode, CastMode, Cast, Clear, Increment, IncMany, CastNums, Max }
 
 	[System.Serializable]
 	public class ColSet {
@@ -26,6 +26,7 @@ public class ExperimentDirector : MonoBehaviour {
 		public ColSet       colSet;
 		public ColliderMode colMode;
 		public CastMode     castMode;
+		public int          castNums = 10;
 		public int[]        colNums  = new int[(int)ColliderMode.Max];
 		public bool         isHit    = false;
 		public int          castTime = 0;
@@ -34,6 +35,7 @@ public class ExperimentDirector : MonoBehaviour {
 			return "Cols: " + ArrayToString(colNums)  + "\n"
 				+  "Cast: " + castMode + "\n"
 				+  "Col:  " + colMode  + "\n"
+				+  "Nums: " + castNums + "\n"
 				+  "Hit:  " + isHit    + "\n"
 				+  "Time: " + castTime;
 		}
@@ -51,8 +53,6 @@ public class ExperimentDirector : MonoBehaviour {
 	}
 	private CurInfo cur;
 
-	private const int CAST_NUMS = 10000;
-
 	private void Start() {
 		Initialize ();
 	}
@@ -64,7 +64,8 @@ public class ExperimentDirector : MonoBehaviour {
 			TestCast,
 			ClearCols,
 			AddCol,
-			AddManyCol
+			AddManyCol,
+			ChangeCastNums
 		};
 
 		cur = new CurInfo();
@@ -93,7 +94,7 @@ public class ExperimentDirector : MonoBehaviour {
 	public void TestCast() {
 		System.DateTime start = System.DateTime.Now;
 
-		foreach (int i in Enumerable.Range(0, CAST_NUMS)) {
+		foreach (int i in Enumerable.Range(0, cur.castNums)) {
 			cur.isHit = Cast ();
 		}
 
@@ -128,6 +129,12 @@ public class ExperimentDirector : MonoBehaviour {
 	public void AddManyCol() {
 		foreach (int i in Enumerable.Range(0, 10)) {
 			AddCol ();
+		}
+	}
+	public void ChangeCastNums() {
+		cur.castNums *= 10;
+		if (cur.castNums == 1000000) {
+			cur.castNums = 10;
 		}
 	}
 

@@ -39,7 +39,18 @@ public class ExperimentDirector : MonoBehaviour {
 				+  "Hit:  " + isHit    + "\n"
 				+  "Time: " + castTime;
 		}
-
+		public string toMarkdown() {
+			int[] meshNums = new int[]{ 12, 768 };
+			return "|" + castMode
+				+ "|" + colMode
+				+ "|" + colNums [0]
+				+ "|" + colNums [1]
+				+ "|" + isHit
+				+ "|" + (colNums [0] + colNums [1])
+				+ "|" + (colNums [0] * meshNums[0] + colNums [1] * meshNums[1])
+				+ "|" + (isHit ? meshNums [(int)colMode] : 0)
+				+ "|" + castTime + "|";
+		}
 
 		private static string ArrayToString(int[] array) {
 			string str = "[" + (array.Count () == 0 ? "" : array[0].ToString()); 
@@ -65,7 +76,8 @@ public class ExperimentDirector : MonoBehaviour {
 			ClearCols,
 			AddCol,
 			AddManyCol,
-			ChangeCastNums
+			ChangeCastNums,
+			StartAutoTest
 		};
 
 		cur = new CurInfo();
@@ -127,15 +139,16 @@ public class ExperimentDirector : MonoBehaviour {
 
 	}
 	public void AddManyCol() {
-		foreach (int i in Enumerable.Range(0, 10)) {
-			AddCol ();
-		}
+		Enumerable.Range (0, 10).ToList ().ForEach (i => AddCol ());
 	}
 	public void ChangeCastNums() {
 		cur.castNums *= 10;
 		if (cur.castNums == 1000000) {
 			cur.castNums = 10;
 		}
+	}
+	public void StartAutoTest() {
+		StartCoroutine (AutoTest ());
 	}
 
 	private bool Cast() {
@@ -149,6 +162,43 @@ public class ExperimentDirector : MonoBehaviour {
 		}
 
 		return false;
+	}
+
+	private IEnumerator AutoTest() {
+		CastMode[] castModes = new CastMode[]{ CastMode.Line, CastMode.Sphere };
+		ColliderMode[] colModes = new ColliderMode[] { ColliderMode.Box, ColliderMode.Sphere };
+		int[] colNums = new int[]{ 0, 1, 10, 50, 100, 500, 1000 };
+
+		string markdownTable =
+			"|Cast mode|Col mode|Box nums|Sphere nums|IsHit|Total col|Total mesh|Hit mesh|Time|\n"
+			+ "|:---:|:---:|---:|---:|:---:|---:|---:|---:|---:|\n";
+
+		foreach (CastMode castMode in castModes) {
+			foreach (ColliderMode colMode in colModes) {
+				foreach (int boxNums in colNums) {
+					foreach (int sphereNums in colNums) {
+						cur.colMode = ColliderMode.Box;
+						ClearCols ();
+						Enumerable.Range (0, boxNums).ToList ().ForEach (i => AddCol ());
+
+						cur.colMode = ColliderMode.Sphere;
+						ClearCols ();
+						Enumerable.Range (0, sphereNums).ToList ().ForEach (i => AddCol ());
+
+						cur.colMode  = colMode;
+						cur.castMode = castMode;
+						TestCast ();
+
+						Debug.Log (castMode + "," + colMode + "," + boxNums + "," + sphereNums);
+						markdownTable += cur.toMarkdown() + "\n";
+
+						yield return null;
+					}
+				}
+			}
+		}
+		Debug.Log (markdownTable);
+
 	}
 
 }

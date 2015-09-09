@@ -156,9 +156,9 @@ public class ExperimentDirector : MonoBehaviour {
 		RaycastHit hit;
 
 		if (cur.castMode == CastMode.Line) {
-			return Physics.Raycast (curSet.caster.position, curSet.caster.forward, out hit, 20f);
+			return Physics.Raycast (curSet.caster.position, curSet.caster.forward, out hit, 50f);
 		} else if (cur.castMode == CastMode.Sphere) {
-			return Physics.SphereCast (curSet.caster.position, 1f, curSet.caster.forward, out hit, 20f);
+			return Physics.SphereCast (curSet.caster.position, 1f, curSet.caster.forward, out hit, 50f);
 		}
 
 		return false;
@@ -171,7 +171,7 @@ public class ExperimentDirector : MonoBehaviour {
 
 		string markdownTable =
 			"|Cast mode|Col mode|Box nums|Sphere nums|IsHit|Total col|Total mesh|Hit mesh|Time|\n"
-			+ "|:---:|:---:|---:|---:|:---:|---:|---:|---:|---:|\n";
+			+ "|:-:|:-:|--:|--:|:-:|--:|--:|--:|--:|\n";
 
 		foreach (CastMode castMode in castModes) {
 			foreach (ColliderMode colMode in colModes) {
@@ -179,16 +179,19 @@ public class ExperimentDirector : MonoBehaviour {
 					foreach (int sphereNums in colNums) {
 						cur.colMode = ColliderMode.Box;
 						ClearCols ();
+						yield return null;
 						Enumerable.Range (0, boxNums).ToList ().ForEach (i => AddCol ());
 
 						cur.colMode = ColliderMode.Sphere;
 						ClearCols ();
+						yield return null;
 						Enumerable.Range (0, sphereNums).ToList ().ForEach (i => AddCol ());
 
 						cur.colMode  = colMode;
 						cur.castMode = castMode;
-						TestCast ();
+						yield return null;
 
+						TestCast ();
 						Debug.Log (castMode + "," + colMode + "," + boxNums + "," + sphereNums);
 						markdownTable += cur.toMarkdown() + "\n";
 
